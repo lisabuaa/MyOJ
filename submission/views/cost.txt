@@ -1,0 +1,2 @@
+  * You will need to declare and use a new variable in the beginning of the function 'main'
+  * Change the 'printf' (output) statement at line 8: change the format string "%.2f\n"

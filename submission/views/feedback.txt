@@ -1,0 +1,2 @@
+  * Change the assigned value(s) to the variable 'd' at line 4
+  * Change the 'printf' (output) statement at line 7: use "x"

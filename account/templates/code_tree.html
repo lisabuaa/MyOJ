@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html>
+<html lang="{{ LANGUAGE_CODE }}">
+<head>
+    <meta charset="utf-8">
+    <!-- 引入 ECharts 文件 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/4.1.0/echarts.min.js" type="text/javascript" charset="utf-8"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.6/ace.js" type="text/javascript" charset="utf-8"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.6/ext-language_tools.js" type="text/javascript" charset="utf-8"></script>
+    <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.8.0.js"></script>
+</head>
+</html>
+<style>
+.row1{
+    float:left;
+    width:50%;
+    height:1000px;
+    box-sizing:border-box;
+}
+.row2{
+    float:left;
+    width:50%;
+    height:1000px;
+    box-sizing:border-box;
+}
+.row{
+    margin:10px auto;
+    max-width:1000px;
+    min-width:1024px;
+}
+</style>
+<body>
+<div class = "row">
+    <div class="row1">
+        <!-- <input id='user' type="text" value="dq0222" /> -->
+        <!-- <input id='analysis' type="button" value="查看" onclick="drawChart()" /> -->
+    <!-- </div> -->
+    <!-- <div> -->
+        <div id="detail" >
+<pre  id="code" class="ace_editor" style="min-height:800px">
+<textarea class="ace_text-input">
+#include <cstdio>
+int main(){
+    int n,m;
+    scanf("%d %d",&n,&m);
+    printf("%d",n+m);
+    return 0;
+}
+</textarea>
+</pre>
+        </div>
+    </div>
+
+    <div class="row2">
+
+            <div id="tree" style="width:100%;height:1000px" >
+
+            </div>
+
+    </div>
+
+</div>
+
+
+    <!-- 为 ECharts 准备一个具备大小（宽高）的 DOM -->
+
+</body>
+
+<!--layer.js import-->
+
+<script>
+    //初始化对象
+
+    function edit_code() {
+        editor = ace.edit("code");
+        //设置风格和语言（更多风格和语言，请到github上相应目录查看）
+        theme = "clouds"
+        language = "c_cpp"
+        editor.setTheme("ace/theme/" + theme);
+        editor.session.setMode("ace/mode/" + language);
+        //字体大小
+        editor.setFontSize(18);
+        //设置只读（true时只读，用于展示代码）
+        editor.setReadOnly(true);
+        //自动换行,设置为off关闭
+        editor.setOption("wrap", "free")
+        //启用提示菜单
+        ace.require("ace/ext/language_tools");
+        editor.setOptions({
+            enableBasicAutocompletion: true,
+            enableSnippets: true,
+            enableLiveAutocompletion: true
+        });
+    }
+    edit_code();
+</script>
+<script type="text/javascript">
+    function loadNewContent(code_id){
+    $.ajax({
+        type:"POST",
+        data:{"code_id":code_id},
+        url:"{% url 'code_tree_content' %}",
+        cache:false,
+        success: function (result) {
+            var option=document.getElementById("detail");
+            option.innerHTML=result;
+            edit_code();
+
+        },
+        error: function (e) {
+            alert('error');
+            alert(e);
+
+        }
+    })
+}
+    function delete_leave(data){
+        var tmp = data;
+        if(tmp.children != null){
+        if (tmp.children.length >10){
+            tmp.children.splice(10,tmp.children.length-10);
+
+        }
+        for(var item in tmp.children){
+            if (tmp.children[item].children != null){
+                //alert(item.name);
+                delete_leave(tmp.children[item]);
+            }
+
+        }
+
+    }
+    }
+    var stus = {{ stu_info|safe }};
+//    var data = {
+//        'name': 'caculate_average',
+//        'children': [{'name': ['2016_364'],'children': [{'name': '2016_369','pro':'001','stu_id':'364'}]}, { 'name': '2016_254', 'pro':'001','stu_id':'364','children': [{ 'name': '2017_728','pro':'001','stu_id':'364',}]}]}  //myChart.showLoading();
+//    var problem_name = 'caculate_average';
+    var data_all = {{ data|safe }};
+    var gen_id = {{ gen_id }};
+    loadNewContent(gen_id);
+    var tmp = data_all;
+    delete_leave(data_all);
+    var data = data_all;
+    //alert(data);
+    var problem_id = {{ problem_id }};
+    var problem_name = {{ problem_id }};
+
+
+
+    var myChart = echarts.init(document.getElementById('tree'), 'macarons');
+
+    option = {
+     tooltip: {
+            trigger: 'item',
+            triggerOn: 'mousemove',
+            formatter: function(params){
+                if (params.dataIndex == '1')
+                    return '题目：'+ problem_name;
+                else{
+                    return '题目：' + problem_name + '</br>';
+                }
+            }
+
+        },
+        series: [
+            {
+                type: 'tree',
+                data: [data],
+                top: '1%',
+                left: '20%',
+                bottom: '1%',
+                right: '30%',
+                symbol:'diamond',
+                symbolSize: 7,
+                initialTreeDepth:2,
+                label: {
+                    show:'true',
+                    normal: {
+                        position: 'left',
+                        verticalAlign: 'middle',
+                        align: 'right',
+                        fontSize: 13
+                    },
+                    formatter: function(params){
+
+                    return '题目：'+ params.name;
+
+            }
+
+                },
+
+                leaves: {
+                    label: {
+                        normal: {
+                            position: 'right',
+                            verticalAlign: 'middle',
+                            align: 'left'
+                        },
+
+                    }
+                },
+
+                expandAndCollapse: false,
+                animationDuration: 550,
+                animationDurationUpdate: 750
+            }
+        ]
+};
+// 为echarts对象加载数据
+myChart.setOption(option);
+myChart.on('click', function (params) {
+    var code_id = stus[params.name.split(":")[0]];
+    loadNewContent(code_id);
+});
+
+
+
+</script>
+
+
+
+
+
+
+
+
+1

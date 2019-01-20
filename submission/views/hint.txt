@@ -1,0 +1,2 @@
+  * Change '$out := StrAppend($out, StrFormat("%.2f\n", sum'))' to '$out := StrAppend($out, StrFormat("%d\n%.2f", $new_sum', sum'))' at line 8 (cost=2.0)
+  * Add assignment '$new_sum := +(+(b', a'), c')' at the beginning of the function 'main' (cost=6.0)

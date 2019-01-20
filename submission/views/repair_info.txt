@@ -1,0 +1,2 @@
+  * * Change 'print d' to 'print x' at 7 (cost=1.0)
+  * * Change 'd = (((s * (s - a)) * (s + b)) * (s - c))' to 'd = (((s * (s - a)) * (s - b)) * (s - c))' at 4 (cost=1.0)

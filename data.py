@@ -12,7 +12,7 @@ import datetime
 import time
 import re
 import  urllib.request
-student_amount = 200   #学生代码
+student_amount = 300   #学生代码
 db = psycopg2.connect(database="onlinejudge2", user="onlinejudge", password="onlinejudge", host="10.2.26.127", port="5432")
 cursor = db.cursor()
 code_copy=""
@@ -76,9 +76,9 @@ class Shixun(object):
                  ####用identifier来做submission_id#####                       
                 ####code###########
                     path = cha.path
-                    self.get_code(identifier,user_id,path)
+                    this_amount += self.get_code(identifier,user_id,path)
+                    
                               
-                    this_amount += 1
 
 #         #print self.user_ids
             
@@ -96,6 +96,7 @@ class Shixun(object):
     
     def get_code(self,identifier,user_id,path):   #代码下载到本地
         
+        amount = 0
         url = 'https://www.educoder.net/api/v1/sources/%s/game_detail?private_token=hriEn3UwXfJs3PmyXnSG' %identifier
         req = urllib.request.Request(url)
         res_data = urllib.request.urlopen(req)
@@ -114,7 +115,7 @@ class Shixun(object):
         status = '0'
         
         if commit_count == 0 :
-            return 
+            return amount
         #print 'right:',right
         
         #print 'commmit_count',commit_count
@@ -145,8 +146,10 @@ class Shixun(object):
             
             insert_info_root = "INSERT INTO \"submission_submission_python\" (shixun_id, challenge_id, student_id, submission_time, submission_count,submission_id,code,result,w_code,code_r) VALUES (%s,%s, %s, %s, %s,%s,%s,%s,'0',%s)"
             list_tmp = [shixun_id, cid, user_id,commit_number,commit_count,submission_id,code_content,right,code_r]
-            cursor.execute(insert_info_root, list_tmp)
+            result = cursor.execute(insert_info_root, list_tmp)
+            print(insert_info_root)
             db.commit()
+            amount += 1
 
             #print submission_id
             #print code_dir
@@ -154,7 +157,8 @@ class Shixun(object):
             
             ######如果只有一次提交##########
             if commit_count == 1:
-                return
+                # print (amount)
+                return amount
             
             #####得到git log中的提交时间######
             os.system('git log > log')
@@ -227,11 +231,13 @@ class Shixun(object):
                         commit_number2 = i   ###第几次
                         code_content=code_content2
                         code_r = chuli(code_content)
+                        amount += 1
                         right = 'false'        #中间结果为false
                         insert_info_root2 = "INSERT INTO \"submission_submission_python\" (shixun_id, challenge_id, student_id, submission_time, submission_count,submission_id,code,result,w_code,code_r) VALUES (%s, %s, %s, %s, %s,%s,%s,%s,'0',%s)"
                         list_tmp2 = [shixun_id2, cid,user_id2,commit_number2,commit_count2,submission_id2,code_content,right,code_r]
                         cursor.execute(insert_info_root2, list_tmp2)
                         db.commit()
+        return amount
 
                     ######################################
 
@@ -254,7 +260,8 @@ class Shixun(object):
             answer = chuli(answer)
             content = item.get("task_pass","") ######题目内容
             #######################chanlleng存入数据库#################################
-            #print(content.encode('utf-8'))
+            #print(answer1.encode('utf-8'))
+            #print(answer.encode('utf-8'))
             try:
                 entryfun = content.split('def')[1].split('(')[0].strip()
                 if len(entryfun)>10:
@@ -264,7 +271,7 @@ class Shixun(object):
 
             insert_info_root = "INSERT INTO \"submission_challenge\" (challenge_id, challenge_name, path, ins, answer,content,entryfun,children_num,level,parent_id,shixun_id,identifier) VALUES (%s, %s, %s, %s,%s,%s,%s,'0','0','0',%s,%s)"
             list_tmp = [id, name,path,str(ins),answer,content,entryfun,self.id,self.identifier]
-            #print(str(ins))
+            # print(str(ins))
             cursor.execute(insert_info_root, list_tmp)
             db.commit()
             if id:
@@ -392,11 +399,11 @@ def chuli(code):
         hanshu = 'def %s():\n' %name
         end = '%s()\n' %name
         tag = -1
-        if 'import' not in code and 'coding' not in code:
+        if 'import' not in code or 'coding' not in code:
             tag = 1
 
         for line in lines:
-            if line == "'''python":
+            if line.strip() == "```python":
                 continue
             regex = u"[\u4e00-\u9fa5]+"
             res = re.findall(regex, line)
@@ -406,7 +413,7 @@ def chuli(code):
                 line = line.replace(item,'#')   #中m~V~Gm~[0m~M0m~H~P#
             if line.strip().startswith('#'):  #m~H| m~Ym~G~J
                 continue
-            if line.startswith('import') or line.startswith('#coding') or line.startswith('from'):
+            if line.startswith('import') or 'coding'in line or line.startswith('from'):
                 line = line + '\n'
                 tag = 1
             elif tag == 1:
@@ -432,7 +439,8 @@ def chuli(code):
             result_code += line+'\n'
     return result_code
 
-identifiers = ['q4ixftoz']
+#identifiers = ['q4ixftoz']
+identifiers = ['ku6lva8t', 'nfypjxhl', 'vff6ljxc', 'k4wg9b32', 'pw53ln4m', 'afvk9r35', 'q4ixftoz', 'ral8fjw9', '89zfsjbp', 'no9uv3g2', 'cztux23y', '4bflgcs8', '6w2xmtls', 'o4xa93mc', 'uctzevfx', 'wokspmut', 'pvwltoq8', 'i2vu5jnl', 'gr7j3apk', 'jk35u2fb', 'atbm74vp', 'vxbpihfe', 'fhc7p56a', 'zekp6f7u', '2slytwug', 'pbx7wzu8', 'fvlehyxp', 'mhbl84nq', 'ftqxgcol', 'h2rugyfp', 'igbc4rtw', 'oatsh64e', 'jxyng672', 'xzbft8gv', '7rnalquk', '69lkjf4g', 'm6nc38so', '9boaulx4', 'ivj49blf', 'mfugx52o', '67nayvtg', 'f39hiscw', 'c6k5i82o', '2y8t594n', 'nbixuzkf', '3bkzvpw7']
 def download_shixun(date):
     url = 'https://www.educoder.net/api/v1/sources/shixun_index?time=%s&private_token=hriEn3UwXfJs3PmyXnSG' %date
     req = urllib.request.Request(url)
@@ -451,9 +459,10 @@ def download_shixun(date):
             #print shixun.name
             #print shixun.identifier
             
-            for identifier in identifiers:
-                shixun.get_challenge()
-                shixun.get_myshixun()
+            for this_identifier in identifiers:
+                if identifier == this_identifier: 
+                    shixun.get_challenge()
+                    shixun.get_myshixun()
 
     
 
